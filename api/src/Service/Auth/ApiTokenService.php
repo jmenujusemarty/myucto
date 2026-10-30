@@ -83,8 +83,11 @@ final class ApiTokenService
         if (!$pdo->inTransaction() || $userId < 1) {
             throw new \LogicException('Vytvoření API tokenu vyžaduje aktivní transakci a uživatele.');
         }
-        if (!in_array($scope, ['read', 'read_write'], true)) {
+        if (!in_array($scope, ['read', 'read_write', 'rebilling_drafts'], true)) {
             throw new \InvalidArgumentException('Invalid scope: ' . $scope);
+        }
+        if ($scope === 'rebilling_drafts' && ($supplierId === null || $supplierId <= 0)) {
+            throw new \InvalidArgumentException('Token přefakturace musí být vázán na firmu.');
         }
         $name = trim($name);
         if ($name === '' || mb_strlen($name) > 100) {

@@ -876,7 +876,8 @@
         "1889_other_item_payment_ownership.sql",
         "1890_other_item_allocation_reversal.sql",
         "1891_other_item_posting_lines.sql",
-        "1892_payroll_takeover_source_jmhz.sql"
+        "1892_payroll_takeover_source_jmhz.sql",
+        "1893_rebilling_drafts.sql"
     ],
     "tables": {
         "accounting_archives": {
@@ -1684,7 +1685,7 @@
                 "name": "varchar(100) NOT NULL",
                 "prefix": "varchar(16) NOT NULL",
                 "revoked_at": "datetime NULL DEFAULT NULL",
-                "scope": "enum('read','read_write') NOT NULL DEFAULT 'read_write'",
+                "scope": "enum('read','read_write','rebilling_drafts') NOT NULL DEFAULT 'read_write'",
                 "supplier_id": "int(10) unsigned NULL DEFAULT NULL",
                 "token_hash": "char(64) NOT NULL",
                 "user_id": "bigint(20) unsigned NOT NULL"
@@ -5929,6 +5930,7 @@
                 "idx_invoices_approval_receipt_hash": "BTREE (approval_receipt_hash)",
                 "idx_invoices_import_batch": "BTREE (supplier_id, import_batch_id)",
                 "idx_invoices_supplier_order": "BTREE (supplier_id, supplier_order_number)",
+                "idx_rebilling_client_period": "BTREE (supplier_id, client_id, issue_date, id)",
                 "uq_inv_approval_token": "UNIQUE BTREE (approval_token)",
                 "uq_inv_public_token": "UNIQUE BTREE (public_token)",
                 "uq_inv_supplier_varsymbol": "UNIQUE BTREE (supplier_id, varsymbol)",
@@ -17146,6 +17148,30 @@
             "indexes": {
                 "PRIMARY": "UNIQUE BTREE (bucket_key, window_start)",
                 "idx_rlc_expires": "BTREE (expires_at)"
+            },
+            "foreign_keys": [],
+            "checks": []
+        },
+        "rebilling_receipts": {
+            "type": "BASE TABLE",
+            "engine": "InnoDB",
+            "collation": "utf8mb4_unicode_ci",
+            "columns": {
+                "created_at": "timestamp NOT NULL DEFAULT current_timestamp()",
+                "invoice_id": "bigint(20) unsigned NOT NULL",
+                "line_count": "int(10) unsigned NOT NULL",
+                "line_ids": "longtext NOT NULL",
+                "payload_hash": "char(64) NOT NULL",
+                "snapshot_hash": "char(64) NOT NULL",
+                "source_hash": "char(64) NOT NULL",
+                "source_key": "varchar(200) NOT NULL",
+                "source_number": "varchar(100) NOT NULL",
+                "start_index": "int(10) unsigned NOT NULL",
+                "supplier_id": "int(10) unsigned NOT NULL"
+            },
+            "indexes": {
+                "PRIMARY": "UNIQUE BTREE (supplier_id, source_key)",
+                "idx_rebilling_invoice": "BTREE (supplier_id, invoice_id)"
             },
             "foreign_keys": [],
             "checks": []

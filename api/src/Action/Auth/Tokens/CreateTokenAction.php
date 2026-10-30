@@ -105,8 +105,11 @@ final class CreateTokenAction
         if ($name === '' || mb_strlen($name) > 100) {
             return Json::error($response, 'validation_failed', 'Název tokenu musí mít 1–100 znaků.', 400);
         }
-        if (!in_array($scope, ['read', 'read_write'], true)) {
+        if (!in_array($scope, ['read', 'read_write', 'rebilling_drafts'], true)) {
             return Json::error($response, 'validation_failed', 'Neplatný scope.', 400);
+        }
+        if ($scope === 'rebilling_drafts' && ($supplierId === null || $supplierId <= 0)) {
+            return Json::error($response, 'validation_failed', 'Token přefakturace musí být vázán na firmu.', 400);
         }
 
         $ip = $this->ipMatcher->clientIp($request->getServerParams(), [], 'X-Forwarded-For');

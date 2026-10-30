@@ -196,6 +196,40 @@ tags:
       pojišťovnu a zálohy na daň (§38a) vč. rozhodnutí FÚ (§174).
 
 paths:
+  /api/v1/invoices/rebilling:
+    get:
+      summary: Read configured rebilling client's invoices and items for one month
+      description: Requires a supplier-bound rebilling_drafts token and deployment configuration REBILLING_SUPPLIER_ID and REBILLING_CLIENT_ID. Reads actual invoices including manually created invoices. This scope cannot access other API endpoints.
+      parameters:
+        - { in: query, name: month, required: true, schema: { type: string, pattern: '^20[0-9]{2}-(0[1-9]|1[0-2])$' } }
+      responses:
+        '200':
+          description: Complete month, up to 500 invoices
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RebillingResponse' }
+        '400': { description: Invalid month }
+        '403': { description: Token, supplier or configured client mismatch }
+    post:
+      summary: Idempotently append one source document to a draft only
+      description: Never issues or sends invoices. Replays return the original receipt, even after issue. Changed source content or manual draft edits return 409. A new source after issue creates a new draft. Prices are net CZK; deposits have zero VAT and refunds negative unit prices. KEG quantities must equal delivered deposits. Configuration and scope are the same as GET.
+      parameters:
+        - { in: query, name: month, required: true, schema: { type: string, pattern: '^20[0-9]{2}-(0[1-9]|1[0-2])$' } }
+        - { in: header, name: Idempotency-Key, required: true, description: Must equal source_key, schema: { type: string, maxLength: 200 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RebillingRequest' }
+      responses:
+        '200':
+          description: Committed draft mutation or idempotent replay
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RebillingResponse' }
+        '403': { description: Token or configured scope mismatch }
+        '409': { description: Source content conflict, draft changed or worker busy; review before retry }
+        '422': { description: Invalid mapping, quantity, KEG/deposit equality, sign or VAT }
   /api/public/shoptet/feed/{token}:
     get:
       tags: [Eshop]
@@ -21546,6 +21580,76 @@ components:
           schema: { $ref: '#/components/schemas/Error' }
 
   schemas:
+    RebillingRequest:
+      type: object
+      additionalProperties: false
+      required: [client_id, month, mode, source_key, source_hash, invoice_number, lines]
+      properties:
+        client_id: { type: integer, minimum: 1 }
+        month: { type: string, pattern: '^20[0-9]{2}-(0[1-9]|1[0-2])$' }
+        mode: { type: string, enum: [monthly, document] }
+        source_key: { type: string, maxLength: 200 }
+        source_hash: { type: string, pattern: '^[a-f0-9]{64}$' }
+        invoice_number: { type: string, maxLength: 100 }
+        lines:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items: { $ref: '#/components/schemas/RebillingLine' }
+    RebillingLine:
+      type: object
+      additionalProperties: false
+      required: [kind, description, quantity, unitPriceCents, vatRate]
+      properties:
+        kind: { type: string, enum: [beer_keg, keg_delivery, keg_return, crate_delivery, crate_return, bottle_delivery, bottle_return] }
+        description: { type: string, maxLength: 200 }
+        quantity: { type: integer, minimum: 1, maximum: 100000 }
+        unitPriceCents: { type: integer, minimum: -100000000, maximum: 100000000, description: Net CZK cents; nonzero, refunds negative, KEG deposit absolute value 150000 }
+        vatRate: { type: integer, enum: [0, 21] }
+    RebillingResponse:
+      type: object
+      required: [invoices]
+      properties:
+        mappings:
+          type: array
+          description: Current line IDs for all source receipts in this month; IDs may change when a draft is appended.
+          items:
+            type: object
+            properties:
+              source_key: { type: string }
+              invoice_id: { type: string }
+              source_hash: { type: string }
+              line_ids: { type: array, items: { type: string } }
+        receipt:
+          type: object
+          required: [invoice_id, line_ids, source_hash]
+          properties:
+            invoice_id: { type: string }
+            line_ids: { type: array, items: { type: string } }
+            source_hash: { type: string }
+        invoices:
+          type: array
+          items:
+            type: object
+            required: [id, number, status, client_id, issue_date, currency, items]
+            properties:
+              id: { type: string }
+              number: { type: [string, 'null'] }
+              status: { type: string }
+              client_id: { type: integer }
+              issue_date: { type: string, format: date }
+              currency: { type: string }
+              note_below_items: { type: [string, 'null'] }
+              items:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id: { type: [string, integer] }
+                    description: { type: string }
+                    quantity: { type: [string, number] }
+                    unit_price_without_vat: { type: [string, number] }
+                    vat_rate_snapshot: { type: [string, number] }
     OtherItemSchedule:
       type: object
       properties:

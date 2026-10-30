@@ -44,6 +44,8 @@ services:
       # Single-volume layout (od 3.6.0). Drží log/, storage/, private/dkim/ i cfg.local.php.
       - app-data:/data
     environment:
+      REBILLING_SUPPLIER_ID: ${REBILLING_SUPPLIER_ID:-0}
+      REBILLING_CLIENT_ID: ${REBILLING_CLIENT_ID:-0}
       TZ: Europe/Prague
       # Sjednocuje všechny stateful cesty pod /data (viz Config::applyDataDirOverrides()).
       MYINVOICE_DATA_DIR: /data

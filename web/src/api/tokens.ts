@@ -8,7 +8,7 @@ export interface ApiToken {
   supplier_company: string | null
   name: string
   prefix: string
-  scope: 'read' | 'read_write'
+  scope: 'read' | 'read_write' | 'rebilling_drafts'
   /** Smí v Dokumentech vidět evidenci mzdových podání (doručenky, protokoly). */
   allow_payroll_submission_docs: boolean
   last_used_at: string | null
@@ -66,7 +66,7 @@ export interface CreateTokenPayload {
   /** Re-auth současným heslem — backend ho vyžaduje vždy (step-up, CreateTokenAction). */
   password: string
   supplier_id?: number | null
-  scope: 'read' | 'read_write'
+  scope: 'read' | 'read_write' | 'rebilling_drafts'
   expires_at?: string | null
   /** Bez expirace — jen vědomá volba, pro read_write navíc jen superadmin. */
   never_expires?: boolean
