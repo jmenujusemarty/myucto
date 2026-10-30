@@ -622,6 +622,8 @@ final class Routes
         $app->put   ('/api/projects/{id:[0-9]+}/dimensions', [\MyInvoice\Action\Accounting\DimensionDefaultsAction::class, 'saveProject']);
 
         // Invoices (M3 — draft + editor + sumace; vystavení/odeslání/PDF přijde v M4)
+        $app->get    ('/api/invoices/rebilling', \MyInvoice\Action\Invoice\RebillingAction::class);
+        $app->post   ('/api/invoices/rebilling', \MyInvoice\Action\Invoice\RebillingAction::class);
         $app->get    ('/api/invoices',              ListInvoicesAction::class);
         $app->get    ('/api/invoices/export.pdf',   ExportSelectedPdfAction::class);
         // Veřejný alias admin exportu (bearer allowlist pokrývá /api/invoices/*):

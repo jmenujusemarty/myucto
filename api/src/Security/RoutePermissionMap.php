@@ -54,6 +54,7 @@ final class RoutePermissionMap
      * @var list<array{0:string,1:string,2:string,3:AccessLevel}>
      */
     private const RULES = [
+        ['POST', '#^/api/invoices/rebilling$#', 'invoices.create', AccessLevel::WRITE],
         // Přesný allowlist provozních nastavení delegovatelných klientovi. Musí být
         // před obecným /api/settings fallbackem: `settings.company = WRITE` nikdy
         // nesmí otevřít PUT /api/settings/supplier ani účetní/daňové konfigurace.

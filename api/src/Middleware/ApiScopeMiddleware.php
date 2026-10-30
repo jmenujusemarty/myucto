@@ -24,6 +24,7 @@ use Slim\Psr7\Factory\ResponseFactory;
  * 2) Scope:
  *      GET / HEAD                 → vyžaduje `read` (každý token splňuje)
  *      POST / PUT / PATCH / DELETE → vyžaduje `read_write`
+ *      rebilling_drafts → pouze GET/POST /api/invoices/rebilling, vždy vázaný na firmu
  *    Nad rámec toho je účetní a daňová vrstva ({@see self::BEARER_READ_ONLY})
  *    pro token jednosměrná — zápis odmítne i `read_write`.
  *
@@ -211,6 +212,14 @@ final class ApiScopeMiddleware implements MiddlewareInterface
         // RequestPath) — obojí musí platit přesně tam, kam router request doručí.
         $path   = RequestPath::normalize($request->getUri()->getPath());
         $method = strtoupper($request->getMethod());
+
+        $apiToken = (array) $request->getAttribute(AuthMiddleware::ATTR_API_TOKEN, []);
+        if (($apiToken['scope'] ?? '') === 'rebilling_drafts') {
+            if ($path === '/api/invoices/rebilling' && in_array($method, ['GET','POST'], true)
+                && (int) ($apiToken['supplier_id'] ?? 0) > 0) return $handler->handle($request);
+            return Json::error($this->responseFactory->createResponse(), 'token_endpoint_forbidden',
+                'Token přefakturace smí pouze číst a doplňovat vyhrazené koncepty.', 403);
+        }
 
         // 1) Path allowlist — token mimo veřejný subset → 403 (vrací se 403, ne 404,
         //    aby integrátor dostal jasný signál; samotná existence interních cest

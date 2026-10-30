@@ -15,6 +15,16 @@ use Slim\Psr7\Factory\ServerRequestFactory;
 
 final class ApiScopeMiddlewareTest extends TestCase
 {
+    public function testRebillingTokenHasOnlyTwoBoundOperations(): void
+    {
+        foreach ([['GET','/api/invoices/rebilling',204],['POST','/api/invoices/rebilling',204],
+            ['POST','/api/invoices/1/issue',403],['POST','/api/invoices/1/send',403],['PUT','/api/invoices/1',403],
+            ['GET','/api/clients',403],['DELETE','/api/invoices/rebilling',403]] as [$method,$path,$status]) {
+            $r=$this->bearer($method,$path,'rebilling_drafts')->withAttribute(AuthMiddleware::ATTR_API_TOKEN,['scope'=>'rebilling_drafts','supplier_id'=>1]);
+            self::assertSame($status,$this->middleware()->process($r,$this->okHandler())->getStatusCode());
+        }
+        self::assertSame(403,$this->middleware()->process($this->bearer('POST','/api/invoices/rebilling','rebilling_drafts'),$this->okHandler())->getStatusCode());
+    }
     public function testCatalogReadPostHasExactReadScopeException(): void
     {
         foreach ([

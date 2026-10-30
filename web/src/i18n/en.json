@@ -16019,6 +16019,8 @@
     "payroll_docs_badge": "payroll submissions",
     "payroll_docs_desc": "Lets the token see data box delivery receipts, social security protocols and health insurer responses. It does not unlock health data, garnishments, insolvency or payslips — those stay browser-only.",
     "scope_read_write_desc": "Full API — create invoices, clients, issue documents.",
+    "scope_rebilling_drafts": "Rebilling drafts only",
+    "scope_rebilling_drafts_desc": "Select a specific company. Only read and append dedicated drafts; cannot issue or send invoices.",
     "expires_never": "Never",
     "col_name": "Name",
     "col_prefix": "Prefix",

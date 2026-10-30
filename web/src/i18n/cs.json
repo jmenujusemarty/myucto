@@ -16019,6 +16019,8 @@
     "payroll_docs_badge": "mzdová podání",
     "payroll_docs_desc": "Odemkne tokenu doručenky datové schránky, protokoly ČSSZ a odpovědi pojišťoven. Zdravotní údaje, exekuce, insolvenci ani výplatní pásky neodemyká — ty zůstávají jen pro přihlášení v prohlížeči.",
     "scope_read_write_desc": "Plné API — vytvářet faktury, klienty, vystavovat doklady.",
+    "scope_rebilling_drafts": "Pouze koncepty přefakturace",
+    "scope_rebilling_drafts_desc": "Vyberte konkrétní firmu. Jen čtení a doplnění vyhrazených konceptů; bez vystavení a odesílání.",
     "expires_never": "Nikdy",
     "col_name": "Název",
     "col_prefix": "Prefix",
