@@ -220,6 +220,19 @@ final class CsobStatementPdfParser implements BankStatementPdfParserInterface
      */
     private function parseSlice(array $slice, int $year): ?array
     {
+        // SEPA labels can wrap over several physical PDF lines before the amount/balance columns.
+        // Keep the financial row together so its amount cannot disappear into the next balance delta.
+        $financialEnd = '/' . self::MONEY . '\s+' . self::MONEY . '$/u';
+        if (!preg_match($financialEnd, $slice[0])) {
+            $head = $slice[0];
+            for ($i = 1; $i < min(count($slice), 4); $i++) {
+                $head .= "\t" . $slice[$i];
+                if (preg_match($financialEnd, $head)) {
+                    $slice = array_merge([$head], array_slice($slice, $i + 1));
+                    break;
+                }
+            }
+        }
         // 1) První řádek: „DD.MM.<typ> [\t protistrana] [\t] pořadí <částka> <zůstatek>".
         if (!preg_match('/^(\d{1,2})\.(\d{1,2})\.(.*)$/u', $slice[0], $m)) {
             return null;

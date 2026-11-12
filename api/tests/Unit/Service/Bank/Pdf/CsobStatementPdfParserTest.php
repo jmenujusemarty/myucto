@@ -17,6 +17,18 @@ use Psr\Log\NullLogger;
  */
 final class CsobStatementPdfParserTest extends TestCase
 {
+    public function testWrappedSepaRowDoesNotMergeIntoTheFollowingTransaction(): void
+    {
+        $text = $this->statement('1 000,00', '1 300,00', '500,00', '-200,00',
+            "01.06.Příchozí úhrada SEPA, EUR v rámci\nEU/EHP\nTEST LTD.\t123 500,00 1 500,00\nIE91CITI99005123687003\n"
+            . "02.06.Odchozí úhrada\tDODAVATEL\t124 -200,00 1 300,00\n123456789/0300\t10001 0308");
+        $parsed = $this->parser()->parse('', $text);
+        self::assertCount(2, $parsed['transactions']);
+        self::assertSame(500.0, $parsed['transactions'][0]['amount']);
+        self::assertSame(-200.0, $parsed['transactions'][1]['amount']);
+        self::assertSame('2026-06-01', $parsed['transactions'][0]['posted_at']);
+    }
+
     private function parser(): CsobStatementPdfParser
     {
         return new CsobStatementPdfParser(new NullLogger());
