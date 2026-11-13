@@ -840,6 +840,8 @@ final class PurchaseInvoiceRepository
         $where = ['pi.supplier_id = ?'];
         $params = [$supplierId];
 
+        \MyInvoice\Service\Invoice\InvoiceIssueDateFilter::append($filters, 'pi', $where, $params);
+
         if (!empty($filters['status'])) {
             $statuses = is_array($filters['status']) ? $filters['status'] : [$filters['status']];
             $place = implode(',', array_fill(0, count($statuses), '?'));

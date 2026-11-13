@@ -133,6 +133,27 @@ final class UnpaidAsOfFilterActionTest extends TestCase
         self::assertNotContains($paidBefore, $ids);
     }
 
+    public function testIssueDateRangeIsIndependentOfTaxMonthForBothLists(): void
+    {
+        foreach (['sales', 'purchase'] as $kind) {
+            $sales = $kind === 'sales';
+            $inside = $sales ? $this->invoice('2003-10-01', 1210.0, 'issued') : $this->purchase('2003-10-01', 1210.0, 'received');
+            $outside = $sales ? $this->invoice('2003-11-03', 1210.0, 'issued') : $this->purchase('2003-11-03', 1210.0, 'received');
+            $table = $sales ? 'invoices' : 'purchase_invoices';
+            $this->db->pdo()->prepare("UPDATE $table SET tax_date = ? WHERE id = ?")->execute(['2003-09-30', $inside]);
+            $this->db->pdo()->prepare("UPDATE $table SET tax_date = ? WHERE id = ?")->execute(['2003-10-31', $outside]);
+            $action = $sales ? $this->invoicesAction : $this->purchasesAction;
+            $uri = $sales ? '/api/invoices' : '/api/purchase-invoices';
+            $response = $this->call($action, $uri, ['filter' => [
+                'issue_date_from' => '2003-10-01', 'issue_date_to' => '2003-10-31',
+                ($sales ? 'client_id' : 'vendor_id') => $this->clientId,
+            ]]);
+            self::assertSame(200, $response['status']);
+            self::assertSame([$inside], $this->collectIds($response['body']['data'] ?? [], 'invoices'));
+            self::assertSame(422, $this->call($action, $uri, ['filter' => ['issue_date_from' => '2003-02-30']])['status']);
+        }
+    }
+
     /** @param array<string,mixed> $query */
     private function call(callable $action, string $uri, array $query): array
     {
