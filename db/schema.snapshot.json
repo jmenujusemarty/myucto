@@ -1018,7 +1018,8 @@
         "2072_oauth_sessions.sql",
         "2073_payment_thanks_stale_guard.sql",
         "2074_journal_document_postings.sql",
-        "2075_purchase_invoice_vat_treatment_permission.sql"
+        "2075_purchase_invoice_vat_treatment_permission.sql",
+        "2076_invoice_issue_date_filter.sql"
     ],
     "tables": {
         "abra_flexi_connections": {
@@ -6390,6 +6391,7 @@
                 "idx_inv_status": "BTREE (status, due_date)",
                 "idx_inv_supplier": "BTREE (supplier_id)",
                 "idx_inv_supplier_efftax": "BTREE (supplier_id, effective_tax_date)",
+                "idx_inv_supplier_issue": "BTREE (supplier_id, issue_date)",
                 "idx_inv_supplier_payment_vs": "BTREE (supplier_id, payment_variable_symbol)",
                 "idx_inv_supplier_payment_vs_key": "BTREE (supplier_id, payment_variable_symbol_match_key)",
                 "idx_inv_supplier_status_due": "BTREE (supplier_id, status, due_date)",

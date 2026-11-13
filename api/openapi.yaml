@@ -931,6 +931,14 @@ paths:
           name: filter[project_id]
           schema: { type: integer }
         - in: query
+          name: filter[issue_date_from]
+          description: Dolní mez data vystavení včetně, nezávislá na DUZP. Neplatné datum nebo obrácený rozsah vrací 422.
+          schema: { type: string, format: date }
+        - in: query
+          name: filter[issue_date_to]
+          description: Horní mez data vystavení včetně, nezávislá na DUZP.
+          schema: { type: string, format: date }
+        - in: query
           name: filter[year]
           description: Rok (dle `COALESCE(tax_date, issue_date)`)
           schema: { type: integer, example: 2026 }
@@ -6552,6 +6560,14 @@ paths:
         - in: query
           name: filter[vendor_id]
           schema: { type: integer }
+        - in: query
+          name: filter[issue_date_from]
+          description: Dolní mez data vystavení včetně, nezávislá na DUZP. Neplatné datum nebo obrácený rozsah vrací 422.
+          schema: { type: string, format: date }
+        - in: query
+          name: filter[issue_date_to]
+          description: Horní mez data vystavení včetně, nezávislá na DUZP.
+          schema: { type: string, format: date }
         - in: query
           name: filter[year]
           schema: { type: integer }

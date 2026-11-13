@@ -829,6 +829,8 @@ final class InvoiceRepository
             $params[] = (int) $filters['supplier_id'];
         }
 
+        \MyInvoice\Service\Invoice\InvoiceIssueDateFilter::append($filters, 'i', $where, $params);
+
         if (!empty($filters['type'])) {
             $types = is_array($filters['type']) ? $filters['type'] : [$filters['type']];
             $place = implode(',', array_fill(0, count($types), '?'));

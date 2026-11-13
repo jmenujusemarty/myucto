@@ -35,6 +35,11 @@ final class ListInvoicesAction
     {
         $q = $request->getQueryParams();
         $filter = (array) ($q['filter'] ?? []);
+        try {
+            $issueDates = \MyInvoice\Service\Invoice\InvoiceIssueDateFilter::parse($filter);
+        } catch (\InvalidArgumentException $e) {
+            return Json::error($response, 'validation_failed', $e->getMessage(), 422);
+        }
         if (($filter['include_dimensions'] ?? null) === '1'
             && !RequestAuthorization::allows($request, 'accounting', AccessLevel::READ)) {
             return Json::error($response, 'forbidden', 'Pro tuto akci nemáš oprávnění.', 403);
@@ -62,7 +67,7 @@ final class ListInvoicesAction
             return Json::error($response, 'validation_failed', "filter[unpaid_as_of] musí být datum (YYYY-MM-DD).", 422);
         }
 
-        $filters = [
+        $filters = $issueDates + [
             'q'             => isset($q['q']) ? trim((string) $q['q']) : '',
             'status'        => $filter['status']      ?? null,
             'type'          => $filter['type']        ?? null,
